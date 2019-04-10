@@ -1,0 +1,90 @@
+﻿
+
+@{
+    ViewBag.Title = "Lean Work Center Page";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+@(Html.DevExtreme().DataGrid()
+                    .ID("gridContainer")
+                    .DataSource(new JS("visitList"))
+                    .ColumnChooser(x => { x.Enabled(true); x.Mode(GridColumnChooserMode.Select); })
+                    //.Sorting()
+                    .HeaderFilter(headerFilter => headerFilter.Visible(true))
+                     .SearchPanel(searchPanel => searchPanel
+                        .Visible(true)
+                        .Width(140)
+                        .Placeholder("Search...")
+                    )
+                    .HeaderFilter(headerFilter => headerFilter.Visible(true))
+                    .FilterRow(f => f.Visible(true))
+                    .Columns(c =>
+                    {
+                        c.Add().DataField("LeanWorkCenterId");
+                        c.Add().DataField("Description").Width("auto").CssClass("datagridWidthLimit");
+                        c.Add().DataField("Description").Caption("Description");
+                        c.Add().DataField("IsActive").EncodeHtml(false);
+                    }).HoverStateEnabled(true)
+                    .Height("93%")
+                    .Width("100%")
+                    .Paging(paging => paging.PageSize(15))
+                    .Pager(pager =>
+                    {
+                        pager.ShowPageSizeSelector(true);
+                        pager.AllowedPageSizes(new List<int> { 6, 12, 18 });
+                        pager.ShowInfo(true);
+                    })
+                    .OnContentReady("onContentReady")
+
+)
+
+
+<script>
+        var AppUrl;
+        var visitList;
+        var AjaxCalls = {
+
+            getLWCList: function () {
+                AppUrl = { Path: '@Url.Action("GetAllLWC", "LeanWorkCenter")' };
+                $.ajax({
+                    type: "POST",
+                    url: AppUrl.Path,
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (response) {
+                        if (response != null) {
+                            visitList = response;
+                            $("#gridContainer").dxDataGrid({
+                                dataSource: visitList,
+                            });
+                        }
+                    },
+                    failure: function (response) {
+                        //console.log(response.responseText);
+                        alert(response.responseText);
+                    },
+                    error: function (response) {
+                        //console.log(response.responseText);
+                        alert(response.responseText);
+                    }
+                });
+            },
+
+        };
+
+
+    AjaxCalls.getLWCList();
+
+    function onContentReady(e) {
+        var columnChooserView = e.component.getView("columnChooserView");
+        if (!columnChooserView._popupContainer) {
+            columnChooserView._initializePopupContainer();
+            columnChooserView.render();
+            columnChooserView._popupContainer.option("position", { of: e.element, my: "right top", at: "right top", offset: "0 50" });
+        }
+    };
+
+
+</script>
+
